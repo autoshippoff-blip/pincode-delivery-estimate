@@ -21,10 +21,12 @@
     "seed:pincodes": "ts-node scripts/seed-pincodes.ts"
   },
   "dependencies": {
+    "@nestjs/cli": "^11.0.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/schematics": "^11.0.0",
     "@nestjs/throttler": "^6.5.0",
     "@prisma/client": "6.19.3",
     "prisma": "6.19.3",
@@ -42,8 +44,6 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
-    "@nestjs/cli": "^11.0.0",
-    "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
