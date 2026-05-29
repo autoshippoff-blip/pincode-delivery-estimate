@@ -31,7 +31,7 @@ export class AnalyticsService {
           region: region || null,
         },
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         this.logger.error(`Failed to log analytics record for tenant ${tenantId} and pincode ${pincode}:`, err);
       });
   }

@@ -50,7 +50,7 @@ async function bootstrap() {
   logger.log(`🚀 Delivery ETA SaaS Backend running on http://localhost:${port}`);
 }
 
-bootstrap().catch((err) => {
+bootstrap().catch((err: unknown) => {
   console.error('❌ Error during application startup:', err);
   process.exit(1);
 });
