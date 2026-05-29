@@ -1,0 +1,26 @@
+{
+  "name": "delivery-eta-saas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Delivery ETA Widget SaaS Monorepo",
+  "workspaces": [
+    "api",
+    "widget"
+  ],
+  "scripts": {
+    "build:api": "npm run build --workspace=api",
+    "build:widget": "npm run build --workspace=widget",
+    "build": "npm run build:api && npm run build:widget",
+    "dev:api": "npm run dev --workspace=api",
+    "dev:widget": "npm run dev --workspace=widget",
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:widget\"",
+    "lint": "npm run lint --workspaces",
+    "format": "prettier --write \"**/*.{ts,js,json,md}\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "prettier": "^3.2.5",
+    "eslint": "^8.57.0",
+    "typescript": "^5.3.3"
+  }
+}

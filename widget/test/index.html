@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delivery ETA Widget - Mock Store Integration Test</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #f3f4f6;
+      color: #1f2937;
+      margin: 0;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .store-container {
+      max-width: 1000px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      padding: 32px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+    }
+    @media (max-width: 768px) {
+      .store-container {
+        grid-template-columns: 1fr;
+      }
+    }
+    .product-image {
+      background: #e5e7eb;
+      border-radius: 12px;
+      width: 100%;
+      height: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #9ca3af;
+      font-weight: 600;
+    }
+    .product-details {
+      display: flex;
+      flex-direction: column;
+    }
+    .product-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+    }
+    .product-price {
+      font-size: 24px;
+      color: #10b981;
+      font-weight: 700;
+      margin-bottom: 24px;
+    }
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #6b7280;
+      text-transform: uppercase;
+      margin: 24px 0 12px 0;
+      letter-spacing: 0.05em;
+    }
+    .widget-row {
+      margin-bottom: 20px;
+    }
+    .dark-section {
+      background-color: #111827;
+      color: #ffffff;
+      border-radius: 16px;
+      padding: 32px;
+      margin-top: 40px;
+      max-width: 1000px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="store-container">
+    <!-- Left column: Product Mock Image -->
+    <div>
+      <div class="product-image">Premium Woolen Cardigan</div>
+    </div>
+
+    <!-- Right column: Details and Widgets -->
+    <div class="product-details">
+      <h1 class="product-title">Premium Woolen Cardigan</h1>
+      <div class="product-price">₹1,899.00</div>
+      
+      <p style="color: #4b5563; font-size: 14px; line-height: 1.5; margin: 0 0 24px 0;">
+        Experience ultimate warmth and comfort with this hand-stitched premium cardigan. Sustainably sourced and dyed using non-toxic pigments.
+      </p>
+
+      <!-- Light Theme Widget -->
+      <div class="section-title">Delivery Checker (Light Theme - demo_merchant_key)</div>
+      <div class="widget-row" id="eta-widget-light"></div>
+
+      <!-- Unauthorized Widget -->
+      <div class="section-title">Delivery Checker (Invalid API Key Test)</div>
+      <div class="widget-row" id="eta-widget-invalid"></div>
+    </div>
+  </div>
+
+  <!-- Dark Theme Store Section -->
+  <div class="dark-section">
+    <h2 style="margin-top: 0;">Dark Theme Storefront Mock</h2>
+    <p style="color: #9ca3af; font-size: 14px; margin-bottom: 24px;">This demonstrates embedding a dark themed widget inside dark layouts.</p>
+    
+    <div class="section-title" style="color: #9ca3af;">Delivery Checker (Dark Theme - demo_merchant_key)</div>
+    <div class="widget-row" id="eta-widget-dark"></div>
+  </div>
+
+  <!-- Load Light Theme Widget Script -->
+  <script 
+    src="../dist/eta-widget.js" 
+    data-api-key="demo_merchant_key" 
+    data-theme="light" 
+    data-base-url="http://localhost:3000" 
+    data-mount-id="eta-widget-light"
+  ></script>
+
+  <!-- Load Invalid Key Widget Script -->
+  <script 
+    src="../dist/eta-widget.js" 
+    data-api-key="invalid_merchant_key" 
+    data-theme="light" 
+    data-base-url="http://localhost:3000" 
+    data-mount-id="eta-widget-invalid"
+  ></script>
+
+  <!-- Load Dark Theme Widget Script -->
+  <script 
+    src="../dist/eta-widget.js" 
+    data-api-key="demo_merchant_key" 
+    data-theme="dark" 
+    data-base-url="http://localhost:3000" 
+    data-mount-id="eta-widget-dark"
+  ></script>
+
+</body>
+</html>

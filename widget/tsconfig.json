@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "node",
+    "target": "ES2017",
+    "outDir": "./dist",
+    "lib": ["dom", "es2017"],
+    "strict": true
+  },
+  "include": ["src/**/*"]
+}

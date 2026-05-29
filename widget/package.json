@@ -1,0 +1,21 @@
+{
+  "name": "widget",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vanilla TypeScript Embeddable Widget",
+  "scripts": {
+    "build": "node esbuild.config.js",
+    "dev": "node esbuild.config.js --watch",
+    "lint": "eslint \"src/**/*.ts\""
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "esbuild": "^0.20.1",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-prettier": "^5.2.2",
+    "globals": "^17.0.0",
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.20.0"
+  }
+}
