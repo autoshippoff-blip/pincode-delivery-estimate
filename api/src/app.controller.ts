@@ -158,6 +158,42 @@ export class AppController {
     }
   }
 
+  @Get('diagnostics/pincodes-check')
+  async pincodesCheck() {
+    try {
+      const count = await this.prisma.pincode.count();
+      const samples = await this.prisma.pincode.findMany({
+        take: 10,
+        select: {
+          pincode: true,
+          officeName: true,
+          district: true,
+          state: true,
+          region: true,
+        }
+      });
+      const check627152 = await this.prisma.pincode.findUnique({
+        where: { pincode: '627152' },
+      });
+      return {
+        success: true,
+        totalPincodes: count,
+        check627152: check627152 ? {
+          found: true,
+          data: check627152,
+        } : {
+          found: false,
+        },
+        samples,
+      };
+    } catch (e: any) {
+      return {
+        success: false,
+        error: e.message,
+      };
+    }
+  }
+
   @Get('diagnostics/cache-stats')
   getCacheStats() {
     if (process.env.NODE_ENV === 'production') {
