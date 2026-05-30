@@ -158,6 +158,151 @@ export class AppController {
     }
   }
 
+  @Get('diagnostics/seed-pincodes')
+  async seedPincodes() {
+    const logs: string[] = [];
+    const log = (msg: string) => {
+      logs.push(msg);
+    };
+
+    const csvUrl = 'https://raw.githubusercontent.com/dropdevrahul/pincodes-india/master/pincode.csv';
+    log(`Fetching pincode data from: ${csvUrl}`);
+
+    const STATE_REGION_MAP: Record<string, string> = {
+      'tamil nadu': 'south',
+      'karnataka': 'south',
+      'kerala': 'south',
+      'andhra pradesh': 'south',
+      'telangana': 'south',
+      'puducherry': 'south',
+      'lakshadweep': 'south',
+      'andaman & nicobar islands': 'south',
+      'andaman and nicobar islands': 'south',
+      'maharashtra': 'west',
+      'gujarat': 'west',
+      'goa': 'west',
+      'dadra and nagar haveli': 'west',
+      'daman and diu': 'west',
+      'dadra and nagar haveli and daman and diu': 'west',
+      'madhya pradesh': 'central',
+      'chhattisgarh': 'central',
+      'rajasthan': 'central',
+      'delhi': 'north',
+      'uttar pradesh': 'north',
+      'haryana': 'north',
+      'punjab': 'north',
+      'himachal pradesh': 'north',
+      'uttarakhand': 'north',
+      'jammu and kashmir': 'north',
+      'jammu & kashmir': 'north',
+      'chandigarh': 'north',
+      'ladakh': 'north',
+      'west bengal': 'east',
+      'odisha': 'east',
+      'jharkhand': 'east',
+      'bihar': 'east',
+      'assam': 'northeast',
+      'arunachal pradesh': 'northeast',
+      'manipur': 'northeast',
+      'meghalaya': 'northeast',
+      'mizoram': 'northeast',
+      'nagaland': 'northeast',
+      'sikkim': 'northeast',
+      'tripura': 'northeast',
+    };
+
+    try {
+      const response = await fetch(csvUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch CSV: ${response.statusText}`);
+      }
+      
+      const csvData = await response.text();
+      log('CSV downloaded successfully. Parsing CSV...');
+      
+      const Papa = require('papaparse');
+      const parsed = Papa.parse(csvData, {
+        header: true,
+        skipEmptyLines: true,
+      });
+
+      const rows = parsed.data;
+      log(`Total rows parsed from CSV: ${rows.length}`);
+      
+      const uniquePincodes = new Map<string, any>();
+      
+      for (const row of rows) {
+        const pincode = (row.Pincode || row.pincode || '').trim();
+        const officeName = (row.OfficeName || row.PostOfficeName || row.officeName || row.officename || row.office_name || '').trim();
+        const district = (row.District || row.DistrictsName || row.districtName || row.districtname || row.district || '').trim();
+        const state = (row.StateName || row.State || row.stateName || row.statename || row.state || '').trim();
+        
+        const latStr = row.Latitude || '';
+        const lngStr = row.Longitude || '';
+        const latitude = latStr ? parseFloat(latStr) : null;
+        const longitude = lngStr ? parseFloat(lngStr) : null;
+        
+        if (!/^\d{6}$/.test(pincode)) {
+          continue;
+        }
+        
+        const stateLower = state.toLowerCase();
+        let region = STATE_REGION_MAP[stateLower];
+        if (!region) {
+          if (stateLower.includes('bengal')) region = 'east';
+          else if (stateLower.includes('kashmir') || stateLower.includes('jammu')) region = 'north';
+          else if (stateLower.includes('nicobar') || stateLower.includes('andaman')) region = 'south';
+          else region = 'central';
+        }
+        
+        if (!uniquePincodes.has(pincode)) {
+          uniquePincodes.set(pincode, {
+            pincode,
+            officeName: officeName || 'Post Office',
+            district: district || 'Unknown',
+            state: state || 'Unknown',
+            region,
+            latitude: latitude && !isNaN(latitude) ? latitude : null,
+            longitude: longitude && !isNaN(longitude) ? longitude : null,
+          });
+        }
+      }
+      
+      const pincodesToInsert = Array.from(uniquePincodes.values());
+      log(`Found ${pincodesToInsert.length} unique valid pincodes.`);
+      
+      log('Clearing existing pincodes from database...');
+      await this.prisma.pincode.deleteMany();
+      
+      log('Seeding database in chunks of 1000...');
+      const chunkSize = 1000;
+      let seededCount = 0;
+      
+      for (let i = 0; i < pincodesToInsert.length; i += chunkSize) {
+        const chunk = pincodesToInsert.slice(i, i + chunkSize);
+        await this.prisma.pincode.createMany({
+          data: chunk,
+          skipDuplicates: true,
+        });
+        seededCount += chunk.length;
+        log(`Seeded ${seededCount}/${pincodesToInsert.length} pincodes...`);
+      }
+      
+      log('Pincode seeding completed successfully!');
+      return {
+        success: true,
+        logs,
+      };
+    } catch (e: any) {
+      log(`Error: ${e.message}`);
+      return {
+        success: false,
+        logs,
+        error: e.message,
+      };
+    }
+  }
+
   @Get('diagnostics/pincodes-check')
   async pincodesCheck() {
     try {
