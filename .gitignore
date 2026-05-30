@@ -35,3 +35,10 @@ desktop.ini
 *.njsproj
 *.sln
 *.sw?
+
+# Compiled files in scripts and buildinfo
+api/scripts/*.js
+api/scripts/*.js.map
+api/scripts/*.d.ts
+api/tsconfig.build.tsbuildinfo
+

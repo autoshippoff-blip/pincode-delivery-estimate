@@ -39,6 +39,9 @@ model Pincode {
   region      String   // south | west | central | north | east | northeast
   latitude    Float?
   longitude   Float?
+
+  @@index([state])
+  @@index([region])
 }
 
 model Warehouse {

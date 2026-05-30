@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from 'nestjs-pino';
+import { APP_GUARD } from '@nestjs/core';
+import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -28,13 +30,18 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
       },
     }),
 
-    // Global Rate Limiter configuration
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => [
         {
+          name: 'apiKey',
           ttl: config.get<number>('THROTTLE_TTL', 60) * 1000, // convert to ms
           limit: config.get<number>('THROTTLE_LIMIT', 60),
+        },
+        {
+          name: 'ip',
+          ttl: config.get<number>('THROTTLE_TTL', 60) * 1000, // convert to ms
+          limit: config.get<number>('THROTTLE_LIMIT_IP', 100),
         },
       ],
     }),
@@ -57,6 +64,12 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
     EtaModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: CustomThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

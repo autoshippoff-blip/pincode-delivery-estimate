@@ -8,6 +8,7 @@ export const configSchema = z.object({
   CACHE_TTL_TENANT: z.coerce.number().default(300),
   THROTTLE_TTL: z.coerce.number().default(60),
   THROTTLE_LIMIT: z.coerce.number().default(60),
+  THROTTLE_LIMIT_IP: z.coerce.number().default(100),
 });
 
 export type Config = z.infer<typeof configSchema>;

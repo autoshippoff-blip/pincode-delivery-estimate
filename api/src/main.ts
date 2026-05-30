@@ -37,7 +37,7 @@ async function bootstrap() {
       callback(null, true);
     },
     methods: 'GET,POST',
-    allowedHeaders: 'Content-Type,Accept,X-API-Key',
+    allowedHeaders: 'Content-Type,Accept,X-API-Key,x-api-key',
     credentials: true,
   });
 
