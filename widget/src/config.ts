@@ -16,8 +16,22 @@ export function loadConfig(): WidgetConfig {
   }
 
   const apiKey = currentScript.getAttribute('data-api-key') || '';
-  const baseUrl = currentScript.getAttribute('data-base-url') || 'http://localhost:3000';
   const mountId = currentScript.getAttribute('data-mount-id') || 'eta-widget';
+
+  let baseUrl = currentScript.getAttribute('data-base-url');
+  if (!baseUrl) {
+    try {
+      const scriptUrl = new URL(currentScript.src);
+      if (scriptUrl.protocol.startsWith('http')) {
+        baseUrl = scriptUrl.origin;
+      }
+    } catch (e) {
+      // Ignored, fallback to localhost
+    }
+  }
+  if (!baseUrl) {
+    baseUrl = 'http://localhost:3000';
+  }
 
   const themeAttr = currentScript.getAttribute('data-theme');
   const theme = themeAttr === 'dark' ? 'dark' : 'light';

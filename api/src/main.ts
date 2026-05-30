@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
 import helmet from 'helmet';
 import { ZodValidationPipe } from 'nestjs-zod';
+import * as express from 'express';
+import { join } from 'path';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
@@ -44,6 +46,9 @@ async function bootstrap() {
 
   // Global exception filter
   app.useGlobalFilters(new HttpExceptionFilter());
+
+  // Serve widget files statically (for testing/demo purposes)
+  app.use('/widget', express.static(join(__dirname, '..', '..', 'widget')));
 
   // Start the server
   await app.listen(port);
