@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Merchant Dashboard | Delivery ETA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(17, 24, 39, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --primary: #3b82f6;
+      --primary-glow: rgba(59, 130, 246, 0.2);
+      --accent: #10b981;
+      --error: #ef4444;
+      --font-outfit: 'Outfit', sans-serif;
+      --font-jkt: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-jkt);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Background Glows */
+    body::before {
+      content: '';
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+      top: -200px;
+      left: -100px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Layout Wrapper */
+    .dashboard-layout {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      position: relative;
+      z-index: 10;
+      display: none; /* Shown after authenticated */
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-title {
+      font-family: var(--font-outfit);
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #ffffff 40%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo-dot {
+      width: 6px;
+      height: 6px;
+      background-color: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    .merchant-profile {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .merchant-name {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .btn-logout {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: var(--error);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .btn-logout:hover {
+      background: var(--error);
+      color: #ffffff;
+    }
+
+    /* Tabs Navigation */
+    .tabs-nav {
+      display: flex;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 12px;
+      margin-bottom: 32px;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .tab-btn.active {
+      color: #ffffff;
+      background: var(--primary);
+      box-shadow: 0 4px 10px rgba(59, 130, 246, 0.25);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .grid-2-3 {
+      display: grid;
+      grid-template-columns: 3fr 2fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-2-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Card Panels */
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 28px;
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      margin-bottom: 24px;
+    }
+
+    .panel-title {
+      font-family: var(--font-outfit);
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Analytics styles */
+    .chart-container {
+      position: relative;
+      height: 280px;
+      width: 100%;
+    }
+
+    .metric-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .metric-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .metric-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .metric-bar-bg {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .metric-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.8s ease-in-out;
+    }
+
+    /* Rules Config styles */
+    .rules-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+
+    .rules-table th {
+      text-align: left;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      padding: 10px;
+      border-bottom: 1.5px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .rules-table td {
+      padding: 14px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 14px;
+    }
+
+    .region-input {
+      width: 70px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 8px 10px;
+      color: var(--text);
+      outline: none;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .region-input:focus {
+      border-color: var(--primary);
+      background: rgba(59, 130, 246, 0.05);
+    }
+
+    .pincode-textarea {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 8px 10px;
+      color: var(--text);
+      font-family: monospace;
+      font-size: 13px;
+      outline: none;
+      resize: vertical;
+    }
+
+    .pincode-textarea:focus {
+      border-color: var(--primary);
+    }
+
+    /* COD Toggle styling */
+    .cod-toggle-wrapper {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 24px;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 26px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.1);
+      transition: .3s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 4px;
+      bottom: 4px;
+      background-color: #ffffff;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--accent);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(22px);
+    }
+
+    /* Save Notification Banner */
+    .save-banner {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: var(--accent);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .save-banner.error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: var(--error);
+    }
+
+    .btn-save {
+      background: linear-gradient(135deg, var(--primary) 0%, #2563eb 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-save:hover {
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.35);
+      transform: translateY(-1px);
+    }
+
+    /* Developer settings styling */
+    .settings-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .key-display-box {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 12px 16px;
+    }
+
+    .key-text {
+      font-family: monospace;
+      font-size: 14px;
+      color: var(--text-muted);
+      flex: 1;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-action {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+
+    .btn-action:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .origins-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.02);
+      padding: 8px;
+      border-radius: 10px;
+      min-height: 48px;
+    }
+
+    .origin-tag {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      color: #93c5fd;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .origin-tag-close {
+      cursor: pointer;
+      color: var(--error);
+      font-weight: bold;
+    }
+
+    .tag-input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 13px;
+      flex: 1;
+      min-width: 150px;
+      padding: 4px 6px;
+    }
+
+    /* Auth modal/login */
+    .auth-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--bg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      padding: 20px;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Auth Prompt / Key Login -->
+  <div id="auth-overlay" class="auth-overlay">
+    <div class="auth-card">
+      <h2 class="panel-title" style="font-size: 22px; margin-bottom: 8px;">Merchant Login</h2>
+      <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 28px; line-height: 1.5;">Enter your Merchant API Key to access your delivery settings, overrides, and logs query analytics.</p>
+      
+      <div id="auth-error" class="save-banner error" style="display: none; margin-bottom: 20px;"></div>
+
+      <form id="auth-form">
+        <div class="settings-row">
+          <label style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted);" for="auth-key">API Key</label>
+          <input type="password" id="auth-key" class="region-input" style="width: 100%; text-align: left; padding: 12px 14px;" placeholder="tk_live_..." required autocomplete="off">
+        </div>
+        <button type="submit" class="btn-save" style="width: 100%; padding: 14px;">Sign In</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dashboard Main Layout -->
+  <div id="dashboard-layout" class="dashboard-layout">
+    <header>
+      <div class="logo-container">
+        <span class="logo-title">etaWidget Dashboard</span>
+        <span class="logo-dot"></span>
+      </div>
+      <div class="merchant-profile">
+        <span id="merchant-label" class="merchant-name">Acme Merchant</span>
+        <button id="logout-btn" class="btn-logout">Logout</button>
+      </div>
+    </header>
+
+    <!-- Navigation -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" data-tab="tab-analytics">Analytics</button>
+      <button class="tab-btn" data-tab="tab-rules">Delivery Rules & COD</button>
+      <button class="tab-btn" data-tab="tab-settings">Developer Settings</button>
+    </div>
+
+    <!-- Banner -->
+    <div id="save-banner" class="save-banner"></div>
+
+    <!-- ANALYTICS TAB -->
+    <div id="tab-analytics" class="tab-content active">
+      <div class="panel">
+        <h3 class="panel-title">Lookup Performance (Last 7 Days)</h3>
+        <div class="chart-container">
+          <canvas id="historyChart"></canvas>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <h3 class="panel-title">Top Searched Pincodes</h3>
+          <div id="top-pincodes-list" class="metric-list">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+        <div class="panel">
+          <h3 class="panel-title">Top Searched States</h3>
+          <div id="top-states-list" class="metric-list">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RULES & COD TAB -->
+    <div id="tab-rules" class="tab-content">
+      <div class="panel">
+        <h3 class="panel-title">Cash on Delivery (COD) Options</h3>
+        <div class="cod-toggle-wrapper">
+          <div>
+            <div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">Enable Cash on Delivery</div>
+            <div style="font-size: 13px; color: var(--text-muted);">Displays "COD available" status badge in widget outputs.</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="cod-toggle">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <h3 class="panel-title">Regional Overrides & Exclusions</h3>
+        <form id="rules-form">
+          <table class="rules-table">
+            <thead>
+              <tr>
+                <th>Region</th>
+                <th>Min Days</th>
+                <th>Max Days</th>
+                <th>COD Blocked Pincodes (Comma separated 6-digit)</th>
+              </tr>
+            </thead>
+            <tbody id="rules-tbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+          <button type="submit" class="btn-save">Save Delivery Rules</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- DEVELOPER SETTINGS TAB -->
+    <div id="tab-settings" class="tab-content">
+      <div class="panel">
+        <h3 class="panel-title">Authentication Credentials</h3>
+        <div class="settings-row">
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Secret API Key</label>
+          <div class="key-display-box">
+            <span id="key-display" class="key-text">••••••••••••••••••••••••••••••••</span>
+            <button id="btn-toggle-key" class="btn-action">Reveal</button>
+            <button id="btn-copy-key" class="btn-action">Copy</button>
+            <button id="btn-regen-key" class="btn-action" style="border-color: rgba(239, 68, 68, 0.2); color: var(--error);">Regenerate Key</button>
+          </div>
+          <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Never share your API Key. Keep it secure and restrict the domains below.</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title">Allowed Origins (CORS Verification)</h3>
+        <div class="settings-row">
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px;">Whitelisted Domains</label>
+          <div class="origins-tags" id="origins-tags-container">
+            <!-- Dynamic tags -->
+            <input type="text" class="tag-input" id="tag-input-field" placeholder="Add domain (e.g. https://*.myshopify.com) + Enter">
+          </div>
+          <span style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">Supports wildcards (e.g. <code>https://*.myshopify.com</code>) and exact matches (e.g. <code>https://mystore.com</code>).</span>
+        </div>
+        <button id="btn-save-origins" class="btn-save">Save Allowed Origins</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let activeKey = '';
+    let dashboardData = null;
+    let allowedOriginsList = [];
+    let historyChart = null;
+
+    const authOverlay = document.getElementById('auth-overlay');
+    const dashboardLayout = document.getElementById('dashboard-layout');
+    const authForm = document.getElementById('auth-form');
+    const authKeyInput = document.getElementById('auth-key');
+    const authError = document.getElementById('auth-error');
+    
+    const merchantLabel = document.getElementById('merchant-label');
+    const logoutBtn = document.getElementById('logout-btn');
+    const saveBanner = document.getElementById('save-banner');
+
+    const codToggle = document.getElementById('cod-toggle');
+    const rulesForm = document.getElementById('rules-form');
+    const rulesTbody = document.getElementById('rules-tbody');
+
+    const keyDisplay = document.getElementById('key-display');
+    const btnToggleKey = document.getElementById('btn-toggle-key');
+    const btnCopyKey = document.getElementById('btn-copy-key');
+    const btnRegenKey = document.getElementById('btn-regen-key');
+
+    const originsContainer = document.getElementById('origins-tags-container');
+    const tagInputField = document.getElementById('tag-input-field');
+    const btnSaveOrigins = document.getElementById('btn-save-origins');
+
+    // Auto-login from localStorage or query param
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const paramKey = urlParams.get('apiKey');
+      const savedKey = localStorage.getItem('eta_api_key') || paramKey;
+      
+      if (savedKey) {
+        activeKey = savedKey;
+        loadDashboard();
+      }
+    });
+
+    authForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      activeKey = authKeyInput.value.trim();
+      loadDashboard();
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('eta_api_key');
+      window.location.href = '/dashboard/index.html';
+    });
+
+    // Fetch stats and initialize Dashboard panels
+    async function loadDashboard() {
+      authError.style.display = 'none';
+      
+      try {
+        const response = await fetch('/api/v1/dashboard/stats', {
+          headers: {
+            'X-API-Key': activeKey
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Authentication failed. Invalid API Key.');
+        }
+
+        dashboardData = await response.json();
+        localStorage.setItem('eta_api_key', activeKey);
+        
+        // Show dashboard page
+        authOverlay.style.display = 'none';
+        dashboardLayout.style.display = 'block';
+
+        initUI();
+
+      } catch (err) {
+        authError.textContent = err.message;
+        authError.style.display = 'block';
+        localStorage.removeItem('eta_api_key');
+      }
+    }
+
+    function initUI() {
+      const { tenant, stats, rules } = dashboardData;
+      
+      merchantLabel.textContent = tenant.name;
+      codToggle.checked = tenant.codEnabled;
+      allowedOriginsList = [...tenant.allowedOrigins];
+
+      // Redraw key
+      keyDisplay.textContent = '••••••••••••••••••••••••••••••••';
+      btnToggleKey.textContent = 'Reveal';
+
+      // 1. Chart Render
+      renderChart(stats.requestHistory);
+
+      // 2. Metrics lists
+      renderMetrics(stats.topPincodes, stats.topStates);
+
+      // 3. Rules Table
+      renderRulesTable(rules);
+
+      // 4. Origins Tags
+      renderOriginsTags();
+    }
+
+    function renderChart(history) {
+      const ctx = document.getElementById('historyChart').getContext('2d');
+      const labels = history.map(h => h.date);
+      const data = history.map(h => h.count);
+
+      if (historyChart) {
+        historyChart.destroy();
+      }
+
+      historyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Lookups',
+            data,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.05)',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true,
+            pointBackgroundColor: '#3b82f6',
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: '#9ca3af', font: { family: 'Plus Jakarta Sans', size: 11 } }
+            },
+            y: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#9ca3af', font: { family: 'Plus Jakarta Sans', size: 11 }, precision: 0 }
+            }
+          }
+        }
+      });
+    }
+
+    function renderMetrics(topPincodes, topStates) {
+      const pinContainer = document.getElementById('top-pincodes-list');
+      const stateContainer = document.getElementById('top-states-list');
+
+      pinContainer.innerHTML = '';
+      stateContainer.innerHTML = '';
+
+      const maxPincodeCount = topPincodes.length > 0 ? Math.max(...topPincodes.map(p => p.count)) : 1;
+      const maxStateCount = topStates.length > 0 ? Math.max(...topStates.map(s => s.count)) : 1;
+
+      if (topPincodes.length === 0) {
+        pinContainer.innerHTML = '<div style="font-size: 13px; color: var(--text-muted);">No lookups recorded yet.</div>';
+      } else {
+        topPincodes.forEach(p => {
+          const percentage = (p.count / maxPincodeCount) * 100;
+          pinContainer.innerHTML += `
+            <div class="metric-item">
+              <div class="metric-label-row">
+                <span>${p.pincode}</span>
+                <span>${p.count} searches</span>
+              </div>
+              <div class="metric-bar-bg">
+                <div class="metric-bar-fill" style="width: ${percentage}%"></div>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      if (topStates.length === 0) {
+        stateContainer.innerHTML = '<div style="font-size: 13px; color: var(--text-muted);">No lookups recorded yet.</div>';
+      } else {
+        topStates.forEach(s => {
+          const percentage = (s.count / maxStateCount) * 100;
+          stateContainer.innerHTML += `
+            <div class="metric-item">
+              <div class="metric-label-row">
+                <span>${s.state}</span>
+                <span>${s.count} searches</span>
+              </div>
+              <div class="metric-bar-bg">
+                <div class="metric-bar-fill" style="width: ${percentage}%"></div>
+              </div>
+            </div>
+          `;
+        });
+      }
+    }
+
+    function renderRulesTable(rules) {
+      rulesTbody.innerHTML = '';
+      const defaultRegions = ['south', 'west', 'central', 'north', 'east', 'northeast'];
+      
+      defaultRegions.forEach(region => {
+        const matchingRule = rules.find(r => r.region.toLowerCase() === region.toLowerCase());
+        const minDays = matchingRule ? matchingRule.minDays : 3;
+        const maxDays = matchingRule ? matchingRule.maxDays : 5;
+        const blockedPinsStr = matchingRule && matchingRule.codBlockedPincodes 
+          ? matchingRule.codBlockedPincodes.join(', ')
+          : '';
+
+        rulesTbody.innerHTML += `
+          <tr data-region="${region}">
+            <td style="font-weight: 600; text-transform: capitalize;">${region}</td>
+            <td>
+              <input type="number" class="region-input min-days-input" value="${minDays}" min="1" required>
+            </td>
+            <td>
+              <input type="number" class="region-input max-days-input" value="${maxDays}" min="1" required>
+            </td>
+            <td>
+              <textarea class="pincode-textarea blocked-pins-input" placeholder="e.g. 560001, 560002" rows="1">${blockedPinsStr}</textarea>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function renderOriginsTags() {
+      // Clear previous tag DOM elements except input
+      const tags = originsContainer.querySelectorAll('.origin-tag');
+      tags.forEach(t => t.remove());
+
+      allowedOriginsList.forEach((origin, index) => {
+        const tag = document.createElement('div');
+        tag.className = 'origin-tag';
+        tag.innerHTML = `
+          <span>${origin}</span>
+          <span class="origin-tag-close" onclick="removeOrigin(${index})">×</span>
+        `;
+        originsContainer.insertBefore(tag, tagInputField);
+      });
+    }
+
+    function removeOrigin(index) {
+      allowedOriginsList.splice(index, 1);
+      renderOriginsTags();
+    }
+
+    // Add Tag on Enter
+    tagInputField.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const value = tagInputField.value.trim();
+        if (value && !allowedOriginsList.includes(value)) {
+          allowedOriginsList.push(value);
+          tagInputField.value = '';
+          renderOriginsTags();
+        }
+      }
+    });
+
+    // Save Allowed Origins
+    btnSaveOrigins.addEventListener('click', async () => {
+      showBanner('Saving allowed origins...', false);
+      
+      try {
+        const response = await fetch('/api/v1/dashboard/allowed-origins', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': activeKey
+          },
+          body: JSON.stringify({ allowedOrigins: allowedOriginsList })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update origins');
+        }
+
+        const data = await response.json();
+        allowedOriginsList = data.allowedOrigins;
+        showBanner('Allowed origins saved successfully!', false);
+      } catch (err) {
+        showBanner(err.message, true);
+      }
+    });
+
+    // Save rules and COD options
+    rulesForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showBanner('Saving delivery rules...', false);
+
+      const rows = rulesTbody.querySelectorAll('tr');
+      const payloadRules = [];
+
+      for (const row of rows) {
+        const region = row.getAttribute('data-region');
+        const minDays = parseInt(row.querySelector('.min-days-input').value);
+        const maxDays = parseInt(row.querySelector('.max-days-input').value);
+        const blockedPinsText = row.querySelector('.blocked-pins-input').value;
+
+        if (minDays >= maxDays) {
+          showBanner(`Validation Error: Min Days must be less than Max Days for region "${region}"`, true);
+          return;
+        }
+
+        const codBlockedPincodes = blockedPinsText
+          .split(',')
+          .map(p => p.trim())
+          .filter(p => /^\d{6}$/.test(p));
+
+        payloadRules.push({
+          region,
+          minDays,
+          maxDays,
+          codBlockedPincodes
+        });
+      }
+
+      try {
+        // First save rules
+        const rulesResponse = await fetch('/api/v1/dashboard/rules', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': activeKey
+          },
+          body: JSON.stringify({ rules: payloadRules })
+        });
+
+        if (!rulesResponse.ok) {
+          const errData = await rulesResponse.json();
+          throw new Error(errData.message || 'Failed to save rules');
+        }
+
+        // Then save COD toggle status
+        const codResponse = await fetch('/api/v1/dashboard/cod', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': activeKey
+          },
+          body: JSON.stringify({ codEnabled: codToggle.checked })
+        });
+
+        if (!codResponse.ok) {
+          throw new Error('Failed to save COD setting');
+        }
+
+        showBanner('Delivery rules and COD options updated successfully!', false);
+      } catch (err) {
+        showBanner(err.message, true);
+      }
+    });
+
+    // Toggle Mask/Reveal Key
+    btnToggleKey.addEventListener('click', () => {
+      if (keyDisplay.textContent === '••••••••••••••••••••••••••••••••') {
+        keyDisplay.textContent = activeKey;
+        btnToggleKey.textContent = 'Hide';
+      } else {
+        keyDisplay.textContent = '••••••••••••••••••••••••••••••••';
+        btnToggleKey.textContent = 'Reveal';
+      }
+    });
+
+    // Copy Key
+    btnCopyKey.addEventListener('click', () => {
+      navigator.clipboard.writeText(activeKey).then(() => {
+        btnCopyKey.textContent = 'Copied!';
+        setTimeout(() => btnCopyKey.textContent = 'Copy', 2000);
+      });
+    });
+
+    // Regenerate Key
+    btnRegenKey.addEventListener('click', async () => {
+      if (!confirm('WARNING: Regenerating your API Key will break all existing integrations using the current key. Do you want to proceed?')) {
+        return;
+      }
+      
+      showBanner('Regenerating API key...', false);
+      
+      try {
+        const response = await fetch('/api/v1/dashboard/regenerate-key', {
+          method: 'POST',
+          headers: {
+            'X-API-Key': activeKey
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to regenerate key');
+        }
+
+        const data = await response.json();
+        activeKey = data.apiKey;
+        localStorage.setItem('eta_api_key', activeKey);
+        
+        keyDisplay.textContent = activeKey;
+        btnToggleKey.textContent = 'Hide';
+        
+        showBanner('API key regenerated successfully. Please update your widget settings.', false);
+      } catch (err) {
+        showBanner(err.message, true);
+      }
+    });
+
+    function showBanner(message, isError) {
+      saveBanner.textContent = message;
+      saveBanner.className = 'save-banner' + (isError ? ' error' : '');
+      saveBanner.style.display = 'block';
+      
+      // Auto-hide after 5 seconds
+      setTimeout(() => {
+        saveBanner.style.display = 'none';
+      }, 5000);
+    }
+
+    // Tabs Controller
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetTab = btn.getAttribute('data-tab');
+        
+        tabBtns.forEach(b => b.classList.remove('active'));
+        tabContents.forEach(c => c.classList.remove('active'));
+
+        btn.classList.add('active');
+        document.getElementById(targetTab).classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

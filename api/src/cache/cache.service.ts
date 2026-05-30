@@ -24,6 +24,14 @@ export class CacheService {
     return this.cache.del(key);
   }
 
+  delPrefix(prefix: string): void {
+    const keys = this.cache.keys();
+    const keysToDelete = keys.filter((key) => key.startsWith(prefix));
+    if (keysToDelete.length > 0) {
+      this.cache.del(keysToDelete);
+    }
+  }
+
   flush(): void {
     this.cache.flushAll();
   }

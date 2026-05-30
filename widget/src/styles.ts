@@ -122,6 +122,30 @@ export const getStyles = (theme: 'light' | 'dark') => {
     
     .status-success {
       color: var(--eta-success);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    
+    .eta-widget-badge {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.02em;
+    }
+
+    .status-cod-active {
+      background: ${theme === 'dark' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.1)'};
+      color: var(--eta-success);
+      border: 1px solid ${theme === 'dark' ? 'rgba(16, 185, 129, 0.25)' : 'rgba(16, 185, 129, 0.2)'};
+    }
+
+    .status-cod-blocked {
+      background: ${theme === 'dark' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.1)'};
+      color: var(--eta-error);
+      border: 1px solid ${theme === 'dark' ? 'rgba(239, 68, 68, 0.25)' : 'rgba(239, 68, 68, 0.2)'};
     }
     
     .status-error {

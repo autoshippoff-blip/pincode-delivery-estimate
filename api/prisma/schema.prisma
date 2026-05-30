@@ -18,11 +18,13 @@ enum EtaMode {
 model Tenant {
   id             String                @id @default(uuid())
   name           String
+  email          String?               // onboarding email
   shopDomain     String?               @unique   // null for non-Shopify
   siteUrl        String?                         // for plain website tenants
   apiKey         String                @unique
   isActive       Boolean               @default(true)
   etaMode        EtaMode               @default(STATIC_RULES)
+  codEnabled     Boolean               @default(false)
   allowedOrigins String[]
   createdAt      DateTime              @default(now())
   rules          DeliveryRule[]
@@ -76,13 +78,14 @@ model TenantCourierConfig {
 }
 
 model DeliveryRule {
-  id        String  @id @default(uuid())
-  tenantId  String
-  tenant    Tenant  @relation(fields: [tenantId], references: [id])
-  region    String
-  minDays   Int
-  maxDays   Int
-  isActive  Boolean @default(true)
+  id                 String   @id @default(uuid())
+  tenantId           String
+  tenant             Tenant   @relation(fields: [tenantId], references: [id])
+  region             String
+  minDays            Int
+  maxDays            Int
+  codBlockedPincodes String[]
+  isActive           Boolean  @default(true)
 }
 
 model ApiLog {

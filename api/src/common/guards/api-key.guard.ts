@@ -37,9 +37,10 @@ export class ApiKeyGuard implements CanActivate {
       throw new UnauthorizedException('Tenant account is suspended');
     }
 
-    // CORS & Origin whitelisting enforcement (Production only)
+    // CORS & Origin whitelisting enforcement (Production only, skipped for dashboard management endpoints)
+    const isDashboardRoute = request.url ? request.url.includes('/api/v1/dashboard') : false;
     const origin = request.headers['origin'] || request.headers['referer'];
-    if (process.env.NODE_ENV === 'production' && origin && typeof origin === 'string') {
+    if (!isDashboardRoute && process.env.NODE_ENV === 'production' && origin && typeof origin === 'string') {
       const allowedOrigins = tenant.allowedOrigins || [];
       if (!this.matchOrigin(origin, allowedOrigins)) {
         throw new UnauthorizedException('Origin not whitelisted for this API key');

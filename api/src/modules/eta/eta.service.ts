@@ -56,7 +56,19 @@ export class EtaService {
     const { minDays, maxDays } = this.etaEngine.calculate(pincodeRecord.region, rules);
     const estimatedDelivery = `${minDays}-${maxDays} Days`;
 
-    // 5. Construct success response
+    // 5. Evaluate COD Availability
+    let codAvailable = false;
+    if (tenant.codEnabled) {
+      const activeRegionRule = rules.find((r) => r.region === pincodeRecord.region);
+      if (activeRegionRule && activeRegionRule.codBlockedPincodes) {
+        const isBlocked = activeRegionRule.codBlockedPincodes.includes(pincode);
+        codAvailable = !isBlocked;
+      } else {
+        codAvailable = true;
+      }
+    }
+
+    // 6. Construct success response
     const response: EtaResponseDto = {
       success: true,
       pincode: pincodeRecord.pincode,
@@ -65,6 +77,7 @@ export class EtaService {
       region: pincodeRecord.region,
       estimated_delivery: estimatedDelivery,
       serviceable: true,
+      cod_available: tenant.codEnabled ? codAvailable : undefined,
     };
 
     // 6. Cache the success response

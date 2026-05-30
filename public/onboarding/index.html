@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Get Started | Delivery ETA Widget</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(17, 24, 39, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --primary: #3b82f6;
+      --primary-glow: rgba(59, 130, 246, 0.35);
+      --accent: #10b981;
+      --accent-glow: rgba(16, 185, 129, 0.35);
+      --error: #ef4444;
+      --font-outfit: 'Outfit', sans-serif;
+      --font-jkt: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-jkt);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Background Glows */
+    body::before {
+      content: '';
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+      top: -100px;
+      left: -100px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    body::after {
+      content: '';
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 75%);
+      bottom: -150px;
+      right: -150px;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+      z-index: 10;
+      animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .logo-container {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .logo-title {
+      font-family: var(--font-outfit);
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #ffffff 40%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 40px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .card-title {
+      font-family: var(--font-outfit);
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .card-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .form-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: var(--text);
+      font-family: var(--font-jkt);
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      background: rgba(59, 130, 246, 0.03);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary) 0%, #2563eb 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Error Banner */
+    .error-banner {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: var(--error);
+      font-size: 13px;
+      margin-bottom: 20px;
+      display: none;
+      animation: shake 0.4s ease;
+    }
+
+    /* Success Panel */
+    .success-panel {
+      display: none;
+      animation: scaleUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .success-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .success-icon {
+      width: 56px;
+      height: 56px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-radius: 50%;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--accent);
+      font-size: 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+    }
+
+    .key-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .api-key-text {
+      font-family: monospace;
+      font-size: 15px;
+      color: var(--accent);
+      word-break: break-all;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-copy {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .btn-copy:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .instructions-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+    }
+
+    .code-preview {
+      background: #0d1117;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 14px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #93c5fd;
+      overflow-x: auto;
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+
+    .btn-dashboard {
+      display: block;
+      width: 100%;
+      text-align: center;
+      background: #ffffff;
+      color: #090d16;
+      text-decoration: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 15px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .btn-dashboard:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(255, 255, 255, 0.15);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes scaleUp {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="logo-container">
+      <div class="logo-title">etaWidget <span class="logo-dot"></span></div>
+    </div>
+
+    <div class="card">
+      <!-- Onboarding Sign Up Screen -->
+      <div id="signup-panel">
+        <h2 class="card-title">Create your account</h2>
+        <p class="card-subtitle">Set up your store and generate your API Key to enable instant, hyper-accurate delivery estimates.</p>
+        
+        <div id="error-banner" class="error-banner"></div>
+
+        <form id="signup-form">
+          <div class="form-group">
+            <label class="form-label" for="name">Merchant Name</label>
+            <input type="text" id="name" class="form-input" placeholder="e.g. Acme Clothing" required autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="email">Business Email</label>
+            <input type="email" id="email" class="form-input" placeholder="e.g. shipping@acme.com" required autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="siteUrl">Store/Website URL</label>
+            <input type="url" id="siteUrl" class="form-input" placeholder="e.g. https://acme.com" required autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="shopDomain">Shopify Domain (Optional)</label>
+            <input type="text" id="shopDomain" class="form-input" placeholder="e.g. acme-wear.myshopify.com" autocomplete="off">
+          </div>
+
+          <button type="submit" id="submit-btn" class="btn-submit">Generate API Key</button>
+        </form>
+      </div>
+
+      <!-- Success Screen -->
+      <div id="success-panel" class="success-panel">
+        <div class="success-header">
+          <div class="success-icon">✓</div>
+          <h2 class="card-title">Setup Completed!</h2>
+          <p class="card-subtitle">Your tenant profile has been initialized. We have also sent copy of this key to your email.</p>
+        </div>
+
+        <div class="instructions-title">Your API Key</div>
+        <div class="key-box">
+          <span id="api-key" class="api-key-text">tk_live_...</span>
+          <button id="copy-btn" class="btn-copy">Copy Key</button>
+        </div>
+
+        <div class="instructions-title">Quick Integration Embed</div>
+        <div class="code-preview" id="code-snippet">
+&lt;script
+  src="https://delivery-eta-api.onrender.com/widget/dist/eta-widget.js"
+  data-api-key="YOUR_API_KEY"
+  data-mount-id="eta-widget"
+  async
+&gt;&lt;/script&gt;
+&lt;div id="eta-widget"&gt;&lt;/div&gt;
+        </div>
+
+        <a href="/dashboard" id="dashboard-link" class="btn-dashboard">Open Merchant Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const signupForm = document.getElementById('signup-form');
+    const signupPanel = document.getElementById('signup-panel');
+    const successPanel = document.getElementById('success-panel');
+    const errorBanner = document.getElementById('error-banner');
+    const submitBtn = document.getElementById('submit-btn');
+    const apiKeyText = document.getElementById('api-key');
+    const copyBtn = document.getElementById('copy-btn');
+    const codeSnippet = document.getElementById('code-snippet');
+    const dashboardLink = document.getElementById('dashboard-link');
+
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Clear previous error
+      errorBanner.style.display = 'none';
+      errorBanner.textContent = '';
+      
+      // Disable inputs/button
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Registering Tenant...';
+
+      const payload = {
+        name: document.getElementById('name').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        siteUrl: document.getElementById('siteUrl').value.trim(),
+      };
+
+      const shopDomain = document.getElementById('shopDomain').value.trim();
+      if (shopDomain) {
+        payload.shopDomain = shopDomain;
+      }
+
+      try {
+        const response = await fetch('/api/v1/tenants/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Onboarding failed');
+        }
+
+        // Success - show details
+        const apiKey = data.tenant.apiKey;
+        apiKeyText.textContent = apiKey;
+        
+        // Dynamically inject API key in snippet
+        const widgetUrl = window.location.origin + '/widget/dist/eta-widget.js';
+        codeSnippet.textContent = `<script\n  src="${widgetUrl}"\n  data-api-key="${apiKey}"\n  data-mount-id="eta-widget"\n  async\n><\/script>\n<div id="eta-widget"><\/div>`;
+        
+        // Save key in localStorage so Dashboard auto-logs in!
+        localStorage.setItem('eta_api_key', apiKey);
+        
+        // Setup direct dashboard link
+        dashboardLink.href = `/dashboard/index.html?apiKey=${apiKey}`;
+
+        // Switch panels
+        signupPanel.style.display = 'none';
+        successPanel.style.display = 'block';
+
+      } catch (err) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Generate API Key';
+        errorBanner.textContent = err.message || 'An unexpected error occurred. Please try again.';
+        errorBanner.style.display = 'block';
+      }
+    });
+
+    // Copy to clipboard
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(apiKeyText.textContent).then(() => {
+        copyBtn.textContent = 'Copied!';
+        copyBtn.style.backgroundColor = 'var(--accent)';
+        copyBtn.style.color = '#ffffff';
+        setTimeout(() => {
+          copyBtn.textContent = 'Copy Key';
+          copyBtn.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+          copyBtn.style.color = 'var(--text)';
+        }, 2000);
+      });
+    });
+  </script>
+</body>
+</html>

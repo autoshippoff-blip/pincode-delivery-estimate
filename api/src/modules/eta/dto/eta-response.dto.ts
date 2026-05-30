@@ -6,4 +6,5 @@ export interface EtaResponseDto {
   region: string;
   estimated_delivery: string;
   serviceable: boolean;
+  cod_available?: boolean;
 }

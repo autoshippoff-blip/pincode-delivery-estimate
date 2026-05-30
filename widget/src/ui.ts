@@ -80,7 +80,22 @@ export function updateUI(elements: WidgetElements, state: WidgetState): void {
     case 'success':
       elements.input.disabled = false;
       elements.button.disabled = false;
-      elements.messageArea.textContent = `✓ Delivery in ${state.deliveryDays}`;
+      
+      const etaText = document.createElement('span');
+      etaText.textContent = `✓ Delivery in ${state.deliveryDays}`;
+      elements.messageArea.appendChild(etaText);
+
+      if (state.codAvailable !== undefined) {
+        const badge = document.createElement('span');
+        badge.className = state.codAvailable
+          ? 'eta-widget-badge status-cod-active'
+          : 'eta-widget-badge status-cod-blocked';
+        badge.textContent = state.codAvailable
+          ? '✓ Cash on Delivery available'
+          : '⚡ Prepaid Orders Only';
+        elements.messageArea.appendChild(badge);
+      }
+
       elements.messageArea.classList.add('status-success');
       break;
 

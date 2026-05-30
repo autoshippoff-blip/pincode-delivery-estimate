@@ -9,6 +9,8 @@ export const configSchema = z.object({
   THROTTLE_TTL: z.coerce.number().default(60),
   THROTTLE_LIMIT: z.coerce.number().default(60),
   THROTTLE_LIMIT_IP: z.coerce.number().default(100),
+  RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM_EMAIL: z.string().email().default('onboarding@resend.dev'),
 });
 
 export type Config = z.infer<typeof configSchema>;

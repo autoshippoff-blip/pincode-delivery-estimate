@@ -11,6 +11,7 @@ export interface WidgetState {
   status: WidgetStatus;
   pincode: string;
   deliveryDays?: string;
+  codAvailable?: boolean;
   validationMessage?: string;
   errorMessage?: string;
 }
@@ -23,6 +24,7 @@ export interface EtaResponse {
   region: string;
   estimated_delivery: string;
   serviceable: boolean;
+  cod_available?: boolean;
 }
 
 export interface ApiConfig {

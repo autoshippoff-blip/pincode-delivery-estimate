@@ -125,6 +125,7 @@ class DeliveryEtaWidget {
           this.setState({
             status: 'success',
             deliveryDays: response.estimated_delivery,
+            codAvailable: response.cod_available,
           });
         } else {
           this.setState({

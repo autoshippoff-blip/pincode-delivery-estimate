@@ -14,6 +14,7 @@ import { TenantModule } from './modules/tenant/tenant.module';
 import { PincodeModule } from './modules/pincode/pincode.module';
 import { EtaModule } from './modules/eta/eta.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
     TenantModule,
     PincodeModule,
     EtaModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [

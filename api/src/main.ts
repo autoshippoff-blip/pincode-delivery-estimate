@@ -47,8 +47,16 @@ async function bootstrap() {
   // Global exception filter
   app.useGlobalFilters(new HttpExceptionFilter());
 
+  // Dynamic workspace root resolution based on whether tsc (dist/src) or webpack (dist) is used
+  const isTscDir = __dirname.includes('dist/src') || __dirname.includes('dist\\src');
+  const workspaceRoot = isTscDir ? join(__dirname, '..', '..', '..') : join(__dirname, '..', '..');
+
   // Serve widget files statically (for testing/demo purposes)
-  app.use('/widget', express.static(join(__dirname, '..', '..', 'widget')));
+  app.use('/widget', express.static(join(workspaceRoot, 'widget')));
+
+  // Serve onboarding and dashboard UIs statically
+  app.use('/onboarding', express.static(join(workspaceRoot, 'public', 'onboarding')));
+  app.use('/dashboard', express.static(join(workspaceRoot, 'public', 'dashboard')));
 
   // Start the server
   await app.listen(port);
