@@ -21,8 +21,12 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT', 3000);
 
-  // Security headers using Helmet
-  app.use(helmet());
+  // Security headers using Helmet (CSP disabled to allow inline scripts and CDN assets)
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+    }),
+  );
 
   // Dynamic CORS configuration (configured per tenant allowedOrigins in Phase 2/3)
   app.enableCors({
