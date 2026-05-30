@@ -48,6 +48,116 @@ export class AppController {
     }
   }
 
+  @Get('diagnostics/seed')
+  async seedDb() {
+    const logs: string[] = [];
+    const log = (msg: string) => {
+      logs.push(msg);
+    };
+
+    try {
+      log('Starting programmatic database seeding...');
+      
+      const tenantsData = [
+        {
+          apiKey: 'demo_merchant_key',
+          name: 'Demo Merchant Widget',
+          allowedOrigins: ['*'],
+          etaMode: 'STATIC_RULES' as any,
+          overrides: [
+            { region: 'south', minDays: 2, maxDays: 3 },
+          ],
+          warehouse: {
+            name: 'Demo Bengaluru Hub',
+            pincode: '560001',
+            city: 'Bengaluru',
+            state: 'Karnataka',
+          },
+        },
+        {
+          apiKey: 'test_merchant_api_key',
+          name: 'Test Merchant SaaS',
+          allowedOrigins: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173'],
+          etaMode: 'STATIC_RULES' as any,
+          overrides: [
+            { region: 'south', minDays: 1, maxDays: 2 },
+            { region: 'west', minDays: 2, maxDays: 3 },
+          ],
+          warehouse: {
+            name: 'Chennai Central Hub',
+            pincode: '600001',
+            city: 'Chennai',
+            state: 'Tamil Nadu',
+          },
+        }
+      ];
+
+      for (const data of tenantsData) {
+        const tenant = await this.prisma.tenant.upsert({
+          where: { apiKey: data.apiKey },
+          update: {
+            name: data.name,
+            allowedOrigins: data.allowedOrigins,
+            etaMode: data.etaMode,
+          },
+          create: {
+            name: data.name,
+            apiKey: data.apiKey,
+            allowedOrigins: data.allowedOrigins,
+            etaMode: data.etaMode,
+          },
+        });
+
+        log(`Tenant created/updated: ${tenant.name} (${tenant.id})`);
+
+        await this.prisma.deliveryRule.deleteMany({
+          where: { tenantId: tenant.id },
+        });
+
+        for (const override of data.overrides) {
+          const rule = await this.prisma.deliveryRule.create({
+            data: {
+              tenantId: tenant.id,
+              region: override.region,
+              minDays: override.minDays,
+              maxDays: override.maxDays,
+              isActive: true,
+            },
+          });
+          log(` - Created delivery rule override for ${rule.region}: ${rule.minDays}-${rule.maxDays} Days`);
+        }
+
+        await this.prisma.warehouse.deleteMany({
+          where: { tenantId: tenant.id },
+        });
+
+        const warehouse = await this.prisma.warehouse.create({
+          data: {
+            tenantId: tenant.id,
+            name: data.warehouse.name,
+            pincode: data.warehouse.pincode,
+            city: data.warehouse.city,
+            state: data.warehouse.state,
+          },
+        });
+        log(` - Created warehouse: ${warehouse.name} at pincode ${warehouse.pincode}`);
+      }
+
+      log('Seeding completed successfully!');
+      return {
+        success: true,
+        logs,
+      };
+    } catch (e: any) {
+      log(`Error: ${e.message}`);
+      return {
+        success: false,
+        logs,
+        error: e.message,
+      };
+    }
+  }
+
   @Get('diagnostics/cache-stats')
   getCacheStats() {
     if (process.env.NODE_ENV === 'production') {
